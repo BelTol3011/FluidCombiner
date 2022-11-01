@@ -23,7 +23,7 @@ SAMPLE_GAME_STATES: list[FluidCombineGameState] = [
     convert_game_state("A1.B1/B3/A3"),
     convert_game_state("A1.B1.C1/A3/B3/C3"),
     convert_game_state("A1/B2/C3"),
-    convert_game_state("A3/A3"),
+    convert_game_state("A3/A4"),
     convert_game_state(
         "R1.H1.O1.B1/R1.P1.D1.H1/R2.G1.B1/O1.L1.S1.G1/H1.D1.L1.S1/O1.H1.D1.G1/O1.B1.L1.S1/P1.S1.G1.L1/P1.D1.B1.P1//"),
     convert_game_state(
@@ -87,6 +87,9 @@ class FluidCombineGame:
         assert self.state[pour_action.bottle_from], \
             f"Origin bottle is empty. (id={pour_action.bottle_from!r})"
 
+        assert bottle_amount(self.state[pour_action.bottle_to]) < self.bottle_size, \
+            f"Target bottle is full. (id={pour_action.bottle_to})"
+
         if self.state[pour_action.bottle_to]:
             fluid_from = self.state[pour_action.bottle_from][-1]
             fluid_to = self.state[pour_action.bottle_to][-1]
@@ -103,7 +106,7 @@ class FluidCombineGame:
             if from_fullness + fluid_from[1] > self.bottle_size:
                 poured_amount = self.bottle_size - from_fullness
 
-                assert poured_amount == 0, "Nothing poured."
+                assert poured_amount != 0, "Nothing poured."
 
                 self.state[pour_action.bottle_from][-1][1] -= poured_amount
                 self.state[pour_action.bottle_to][-1][1] += poured_amount
@@ -172,7 +175,7 @@ class FluidCombineGame:
     def solve(self):
         already_seen = set()
 
-        def solve_recursive(game: FluidCombineGame, history: list[PourAction], max_depth: int = 30):
+        def solve_recursive(game: FluidCombineGame, history: list[PourAction], max_depth: int = 23):
             if max_depth <= 0:
                 return None
 
@@ -205,7 +208,7 @@ def main():
     print(game.is_possible())
     # print(game.get_possibilities())
     steps = game.solve()
-    print(steps)
+    # print(game.do(PourAction(0, 1)))
 
     print("Solution:")
     for i, step in enumerate(steps):
